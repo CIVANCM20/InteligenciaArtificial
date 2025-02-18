@@ -28,6 +28,11 @@ Construido con
 -Visual studio code
 -lenguaje python
 
+--tarea3:
+se realizo una investigación sobre los agentes deliberativos y hibridps donde se aborda en que son, para que se usan y unos ejemplo
+link: https://github.com/CIVANCM20/InteligenciaArtificial/blob/main/Investigacion%20agentes.pdf
+a su vez se realizo una presentacion sobre dicho tema: https://github.com/CIVANCM20/InteligenciaArtificial/blob/main/presentacion%20agentes.pptx
+
 Autores 
 -Carrasco Medina Carlos Ivan
 -Peña Vizcarra Jatniel Alejandro
