@@ -1,0 +1,5 @@
+Tarea-4: Elaboración de programa experto
+Integrantes:
+Carrasco Medina Carlos Iván
+Peña Vizcarra Jatniel Alejandro
+basado en las 100 reglas que se habían elaborado en el trabajo anterior se elaboro un programa experto, este programa se elaboro en el lenguaje Python, en el en un se muestra un cuestionario de selección de síntomas (estos síntomas se extrajeron de las 100 reglas), al seleccionar las opciones en la parte inferior de la interfaz despliega las reglas que coinciden con los síntomas seleccionados y el mantenimiento necesario o posible falla que se presente en el vehículo, agregamos una función de búsqueda por síntoma para mayor comodidad del usuario, considerando el hecho de la falta de la reserva de conocimiento de el programa experto agregamos una opción en la interfaz para poder enriquecer la base de conocimiento del programa experto
