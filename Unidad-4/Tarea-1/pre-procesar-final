@@ -1,0 +1,70 @@
+import os
+import cv2
+import shutil
+import pandas as pd
+
+
+origen = 'train'
+destino = 'Affectnet_train_expanded2'
+csv_salida = 'etiquetas_train_expandido2.csv'
+
+
+variaciones_luz = [
+    ('original', 0),
+    ('bright', 50),
+    ('dim', -50),
+    ('dark', -80)
+]
+
+
+tamaño_esperado = (224, 224)
+
+
+if os.path.exists(destino):
+    shutil.rmtree(destino)
+os.makedirs(destino, exist_ok=True)
+
+datos = []
+
+for emocion in os.listdir(origen):
+    ruta_emocion_origen = os.path.join(origen, emocion)
+    ruta_emocion_destino = os.path.join(destino, emocion)
+
+    if not os.path.isdir(ruta_emocion_origen):
+        continue
+
+    os.makedirs(ruta_emocion_destino, exist_ok=True)
+
+    for archivo in os.listdir(ruta_emocion_origen):
+        if not (archivo.endswith('.jpg') or archivo.endswith('.png')):
+            continue
+
+        ruta_img_original = os.path.join(ruta_emocion_origen, archivo)
+        img = cv2.imread(ruta_img_original)
+        if img is None:
+            continue
+
+        img = cv2.resize(img, tamaño_esperado)
+
+        nombre_base = os.path.splitext(archivo)[0]
+        extension = os.path.splitext(archivo)[1]
+
+        for sufijo, beta in variaciones_luz:
+            nombre_nuevo = f"{nombre_base}_{sufijo}{extension}"
+            ruta_destino = os.path.join(ruta_emocion_destino, nombre_nuevo)
+
+            if sufijo == 'original' and beta == 0:
+                cv2.imwrite(ruta_destino, img)
+            else:
+                img_mod = cv2.convertScaleAbs(img, alpha=1.0, beta=beta)
+                cv2.imwrite(ruta_destino, img_mod)
+
+            
+            ruta_relativa = os.path.join(emocion, nombre_nuevo)
+            datos.append({'ruta': ruta_relativa, 'etiqueta': emocion})
+
+
+df = pd.DataFrame(datos)
+df.to_csv(csv_salida, index=False)
+print(f"Proceso completado: imágenes escaladas y guardadas en '{destino}'")
+print(f"Etiquetas guardadas en '{csv_salida}'")
