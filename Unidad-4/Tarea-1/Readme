@@ -1,0 +1,28 @@
+Este trabajo forma parte del futuro desarrollo de un programa capaz de detectar el estado de ánimo de una
+persona mediante reconocimiento facial. Para lograr esto, es necesario entrenar un modelo de inteligencia
+artificial con un conjunto de imágenes previamente clasificadas según distintas emociones.
+
+Objetivo:
+El propósito de este documento es registrar el proceso de preprocesamiento de las fotografías que 
+serán utilizadas para entrenar el modelo. Este proceso es fundamental para garantizar un reconocimiento 
+más preciso en la etapa de implementación del sistema.
+
+Selección del Dataset:
+Luego de una exhaustiva búsqueda, se seleccionó un conjunto de datos que cumplía con las características 
+necesarias para este proyecto:
+-Imágenes a color.
+-Diversidad de ángulos faciales (no solo rostros de frente).
+-Clasificación en dos estados de ánimo (minimo).
+
+Dataset utilizado:
+AffectNet Augmented - Kaggle
+https://www.kaggle.com/datasets/shantanupandey1/affectnet-augmented
+
+Preprocesamiento:
+Para mejorar la calidad de las imágenes y optimizar el rendimiento del modelo, se aplicaron varias 
+técnicas de preprocesamiento utilizando las librerias SO, cv2, shutil y pandas as pd:
+-Ajuste de brillo: para compensar imágenes con iluminación deficiente.
+-Rotación: para simular distintos ángulos de visión del rostro.
+-Escalado: para uniformar el tamaño de las imágenes y facilitar su procesamiento por el modelo.
+
+Estas modificaciones ayudan a aumentar la robustez del modelo ante variaciones en las imágenes de entrada.
