@@ -1,0 +1,128 @@
+import tensorflow as tf
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+import os
+
+# Configuración
+train_dir = 'train'
+val_dir = 'validation'
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 64
+EPOCHS = 10 # Más entrenamiento
+MAX_IMAGES = 1000  # Máximo de imágenes por clase
+
+def limitar_dataset(ds, max_imgs, num_classes):
+    total = max_imgs * num_classes
+    return ds.take(total)
+
+# Carga de datos
+train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+    train_dir,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    label_mode='categorical',
+    shuffle=True
+)
+val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+    val_dir,
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    label_mode='categorical',
+    shuffle=False
+)
+class_names = train_ds.class_names
+print('Clases:', class_names)
+
+# Limitar datasets
+num_classes = len(class_names)
+train_ds = limitar_dataset(train_ds, MAX_IMAGES, num_classes)
+val_ds = limitar_dataset(val_ds, MAX_IMAGES, num_classes)
+
+# Prefetch
+AUTOTUNE = tf.data.AUTOTUNE
+train_ds = train_ds.prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.prefetch(buffer_size=AUTOTUNE)
+
+# Modelo CNN
+model = tf.keras.Sequential([
+    tf.keras.layers.Rescaling(1./255, input_shape=(224, 224, 3)),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(len(class_names), activation='softmax')
+])
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Entrenamiento
+history = model.fit(train_ds, validation_data=val_ds, epochs=EPOCHS)
+
+# Guardar modelo
+model.save('modelo_emociones.h5')
+
+# Graficar entrenamiento
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.plot(history.history['accuracy'], label='Entrenamiento')
+plt.plot(history.history['val_accuracy'], label='Validación')
+plt.title('Precisión')
+plt.legend()
+plt.subplot(1,2,2)
+plt.plot(history.history['loss'], label='Entrenamiento')
+plt.plot(history.history['val_loss'], label='Validación')
+plt.title('Pérdida')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Clasificación en tiempo real con webcam
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print('No se pudo abrir la cámara')
+    exit()
+
+print("\nPresiona 'q' para salir")
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Preprocesamiento de la imagen en tiempo real
+    img = cv2.resize(frame, IMG_SIZE)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Asegura formato correcto
+    img_array = tf.expand_dims(img, 0)  # Añade dimensión batch
+
+    # Predicción
+    predictions = model.predict(img_array, verbose=0)
+    predicted_index = np.argmax(predictions[0])
+    emotion = class_names[predicted_index]
+    confidence = predictions[0][predicted_index] * 100
+
+    # Mostrar emoción principal
+    text = f'{emotion} ({confidence:.1f}%)'
+    cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                1, (0, 255, 0), 2, cv2.LINE_AA)
+
+    # Mostrar todas las probabilidades
+    for i, emotion_name in enumerate(class_names):
+        prob = predictions[0][i]
+        text_line = f'{emotion_name}: {prob * 100:.1f}%'
+        cv2.putText(frame, text_line, (10, 60 + i * 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+
+    # Mostrar frame
+    cv2.imshow('Detección de Emociones', frame)
+
+    # Salir con 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
